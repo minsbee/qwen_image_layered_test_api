@@ -1,0 +1,43 @@
+# Python 관련
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# PyCharm 관련
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# 환경 변수 & 설정 파일
+.env
+.env.dev
+*.secret
+config.json
+
+# 가상환경 관련 (venv 또는 virtualenv)
+venv/
+.virtualenvs/
+
+# 로그 & 캐시 파일
+*.log
+*.cache
+logs/
+debug.log
+
+# Docker 관련
+docker-compose.override.yml
+#*.dockerignore
+*.tar
+.DS_Store
+
+
+# FastAPI & Uvicorn 관련
+instance/
+__pypackages__/

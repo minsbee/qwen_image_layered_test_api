@@ -1,0 +1,21 @@
+# 가상환경 제외
+.venv
+
+# 캐시 및 빌드 파일 제외
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Git 관련 파일 제외
+.git
+.gitignore
+
+# IDE 및 에디터 설정 파일 제외
+.vscode/
+.idea/
+*.swp
+
+# 로컬 환경 설정 파일 제외
+# .env
+*.log

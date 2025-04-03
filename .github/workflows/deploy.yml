@@ -1,0 +1,79 @@
+name: auto deploy to cloudtype
+on:
+  push:
+    branches:
+      - deploy
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDTYPE_TOKEN: ${{ secrets.CLOUDTYPE_TOKEN }}
+      GHP_TOKEN: ${{ secrets.GHP_TOKEN }}
+      CURRENT_ENV: ${{ secrets.CURRENT_ENV }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      REDIS_PRODUCT_DB: ${{ secrets.REDIS_PRODUCT_DB }}
+      REDIS_LOG_DB: ${{ secrets.REDIS_LOG_DB }}
+      B2_API_KEY_ID: ${{ secrets.B2_API_KEY_ID }}
+      B2_API_KEY: ${{ secrets.B2_API_KEY }}
+      B2_BUCKET_ID: ${{ secrets.B2_BUCKET_ID }}
+      LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
+      OPENAI_PROJECT_ID: ${{ secrets.OPENAI_PROJECT_ID }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_LLM_MODEL: ${{ secrets.OPENAI_LLM_MODEL }}
+      OPENAI_EMBED_MODEL: ${{ secrets.OPENAI_EMBED_MODEL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Connect deploy key
+        uses: cloudtype-github-actions/connect@v1
+        with:
+          token: ${{ env.CLOUDTYPE_TOKEN }}
+          ghtoken: ${{ env.GHP_TOKEN }}
+          scope: minsbee-lab
+
+      - name: Deploy
+        uses: cloudtype-github-actions/deploy@v1
+        with:
+          token: ${{ env.CLOUDTYPE_TOKEN }}
+          project: minsbee-lab/printmon-test
+          stage: main
+          yaml: |
+            name: printmon-product-recommend
+            app: dockerfile
+            options:
+              dockerfile: Dockerfile
+              env:
+                - name: CURRENT_ENV
+                  value: "${{ env.CURRENT_ENV }}"
+                - name: REDIS_HOST
+                  value: "${{ env.REDIS_HOST }}"
+                - name: REDIS_PORT
+                  value: "${{ env.REDIS_PORT }}"
+                - name: REDIS_PRODUCT_DB
+                  value: "${{ env.REDIS_PRODUCT_DB }}"
+                - name: REDIS_LOG_DB
+                  value: "${{ env.REDIS_LOG_DB }}"
+                - name: B2_API_KEY_ID
+                  value: "${{ env.B2_API_KEY_ID }}"
+                - name: B2_API_KEY
+                  value: "${{ env.B2_API_KEY }}"
+                - name: B2_BUCKET_ID
+                  value: "${{ env.B2_BUCKET_ID }}"
+                - name: LOG_LEVEL
+                  value: "${{ env.LOG_LEVEL }}"
+                - name: OPENAI_PROJECT_ID
+                  value: "${{ env.OPENAI_PROJECT_ID }}"
+                - name: OPENAI_API_KEY
+                  value: "${{ env.OPENAI_API_KEY }}"
+                - name: OPENAI_LLM_MODEL
+                  value: "${{ env.OPENAI_LLM_MODEL }}"
+                - name: OPENAI_EMBED_MODEL
+                  value: "${{ env.OPENAI_EMBED_MODEL }}"
+              args: []
+            context:
+              git:
+                url: git@github.com:${{ github.repository }}.git
+                ref: ${{ github.ref }}
+              preset: dockerfile

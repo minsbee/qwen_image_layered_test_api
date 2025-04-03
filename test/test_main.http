@@ -1,0 +1,6 @@
+# Test your FastAPI endpoints
+
+# 루트경로(접속 확인용)
+GET http://127.0.0.1:8000/
+Accept: application/json
+###
