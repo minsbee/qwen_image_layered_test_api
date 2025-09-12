@@ -13,7 +13,7 @@ from .env_settings import envs
 current_env = envs.CURRENT_ENV
 
 # 로그 정의
-LOG_LEVEL = envs.LOG_LEVEL
+LOG_LEVEL = envs.LOG_LEVEL or "INFO"
 
 # 한국 기준 시간 정의
 kst_now = datetime.now(ZoneInfo("Asia/Seoul"))
