@@ -54,7 +54,7 @@ logger.add(
     level=LOG_LEVEL.upper(),
     format=dev_log_format,
     colorize=True,
-    enqueue=True,
+    enqueue=False,  # 동기 처리로 변경
 )
 
 
@@ -73,7 +73,7 @@ if current_env == "production":
         save_redis_log,
         level=LOG_LEVEL.upper(),
         colorize=True,
-        enqueue=True,
+        enqueue=False,  # 동기 처리로 변경
     )
 
     # 동기 함수로 구현하여 이벤트 루프 문제 해결

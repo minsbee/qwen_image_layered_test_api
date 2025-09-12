@@ -1,4 +1,5 @@
 import sys
+import os
 from invoke import task
 
 # 윈도우 환경에서는 가상 터미널 기능이 제공되지 않으므로 플랫폼 검사 후 윈도우인 경우 가상환경 설정 꺼줘야 됨
@@ -7,8 +8,10 @@ is_windows = True if sys.platform.startswith("win") else False
 
 @task
 def dev(c):
+    # .env.dev가 있으면 사용, 없으면 .env.example 사용
+    env_file = ".env.dev" if os.path.exists(".env.dev") else ".env.example"
     c.run(
-        "uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 --env-file .env.dev",
+        f"uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 --env-file {env_file}",
         pty=is_windows,
     )
 

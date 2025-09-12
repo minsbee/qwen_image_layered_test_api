@@ -1,40 +1,28 @@
 import uvicorn
 from fastapi import FastAPI
 from app.config import envs, logger, setup_exception_handlers
-from app.routers import (
-    authorize_b2_router,
-    get_upload_url_b2_router,
-)
+from app.routers import api_router
 
 
 def create_app():
-    app = FastAPI(title="Fast API")
+    main_application = FastAPI(title="Fast API")
 
     logger.info(f"Environment: {envs.CURRENT_ENV}")
     logger.info(f"Log level: {envs.LOG_LEVEL}")
 
-    app.include_router(
-        authorize_b2_router,
-        prefix="/api",
-        tags=["Authorize_b2"],
-    )
+    # 통합된 API 라우터 한 번만 포함
+    main_application.include_router(api_router)
 
-    app.include_router(
-        get_upload_url_b2_router,
-        prefix="/api",
-        tags=["Get_upload_url_b2"],
-    )
+    setup_exception_handlers(main_application)
 
-    setup_exception_handlers(app)
-
-    @app.get("/")
+    @main_application.get("/")
     async def root():
         return {"message": "Welcome to Fast API!"}
 
-    return app
+    return main_application
 
 
-main_application = create_app()
+app = create_app()
 
 if __name__ == "__main__":
-    uvicorn.run(main_application, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
