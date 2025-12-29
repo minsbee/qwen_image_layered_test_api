@@ -1,76 +1,86 @@
-# FastAPI 보일러플레이트
+# Qwen Image Layered API
 
-AI 관련 미니 프로젝트를 빠르게 개발하기 위한 FastAPI 기반 보일러플레이트입니다.
+Qwen-Image-Layered 모델을 활용한 이미지 레이어 분해 API 서버입니다.
 
 ## 프로젝트 개요
 
-이 보일러플레이트는 AI 프로젝트를 위한 기본적인 백엔드 API 서버 구조를 제공합니다. FastAPI 프레임워크를 기반으로 하여 빠른 API 개발, 자동 문서화, 타입 힌트 등의 기능을 제공하며, 개발 및 배포 환경 설정이 미리 구성되어 있습니다.
+이 프로젝트는 Alibaba의 Qwen-Image-Layered 모델을 FastAPI 기반 API 서버로 제공합니다. 입력된 이미지를 여러 개의 RGBA 레이어로 분해하여 각 레이어를 독립적으로 편집할 수 있게 합니다. 레이어드 아키텍처를 적용하여 확장 가능하고 유지보수하기 쉬운 구조로 설계되었습니다.
 
 ## 주요 기능
 
-- **FastAPI 기반 API 서버**: 고성능 비동기 API 서버 구조
-- **환경 설정 관리**: 개발/프로덕션 환경에 따른 설정 관리
-- **로깅 시스템**: 로깅 설정 및 로그 저장 기능
-- **예외 처리**: 글로벌 예외 핸들러 설정
-- **B2 스토리지 연동**: 파일 저장 기능
-- **Docker 지원**: 개발 및 배포를 위한 Docker 설정
+- **이미지 레이어 분해**: 하나의 이미지를 여러 RGBA 레이어로 자동 분해
+- **레이어드 아키텍처**: Router, Service, Config 계층 분리
+- **디바이스 자동 감지**: CUDA, MPS, CPU 자동 선택
+- **환경 설정 관리**: 개발/프로덕션 환경별 설정
+- **Redis 캐싱**: 데이터 캐싱 및 세션 관리
+- **RabbitMQ 메시지 큐**: 비동기 작업 처리
+- **OpenAI API 통합**: AI 기능 확장
 - **코드 품질 관리**: pre-commit, Ruff를 통한 코드 포맷팅 및 린팅
 
 ## 기술 스택
 
-- **Backend**: FastAPI
-- **서버 실행**: Uvicorn
-- **패키지 관리**: pip
-- **환경 변수 관리**: python-dotenv
-- **태스크 실행**: invoke
-- **컨테이너화**: Docker
-- **캐싱**: Redis
-- **코드 포맷팅/린팅**: Ruff, pre-commit
+### Backend
+- **FastAPI**: 고성능 비동기 API 프레임워크
+- **Uvicorn**: ASGI 서버
+
+### ML/AI
+- **PyTorch**: 딥러닝 프레임워크
+- **Diffusers**: Hugging Face Diffusion 모델 라이브러리
+- **Transformers**: Hugging Face Transformers 라이브러리
+- **Qwen-Image-Layered**: 이미지 레이어 분해 모델
+
+### Infrastructure
+- **Redis**: 캐싱 및 세션 관리
+- **RabbitMQ (aio-pika)**: 메시지 큐
+- **Docker**: 컨테이너화
+- **OpenAI API**: AI 기능 통합
+
+### Development Tools
+- **Ruff**: 코드 포맷팅 및 린팅
+- **pre-commit**: Git 훅 관리
+- **invoke**: 태스크 실행 도구
 
 ## 프로젝트 구조
 
 ```
 .
-├── app/                    # 애플리케이션 코드
-│   ├── config/             # 환경 설정 및 로깅 설정
-│   │   ├── env_settings.py # 환경 변수 설정
-│   │   ├── exceptions.py   # 예외 처리 설정
-│   │   ├── logger.py       # 로깅 설정
-│   │   └── redis_client.py # Redis 클라이언트 설정
-│   ├── routers/            # API 라우터
-│   │   └── bucket.py       # B2 저장소 관련 API
-│   ├── services/           # 비즈니스 로직
-│   │   └── bucket_service.py # B2 저장소 관련 서비스
-│   ├── __init__.py         # 애플리케이션 초기화
-│   └── main.py             # 애플리케이션 진입점
-├── public/                 # 정적 파일
-├── test/                   # 테스트 코드
-├── .dockerignore           # Docker 무시 파일 설정
-├── .env                    # 프로덕션 환경 변수
-├── .env.dev                # 개발 환경 변수
-├── .gitignore              # Git 무시 파일 설정
-├── .pre-commit-config.yaml # pre-commit 설정
-├── Dockerfile              # Docker 빌드 설정
-├── README.md               # 프로젝트 문서
-├── pyproject.toml          # Python 프로젝트 설정
-├── requirements.txt        # 의존성 패키지 목록
-├── start.sh                # 실행 스크립트
-└── tasks.py                # Invoke 태스크 정의
+├── app/
+│   ├── config/
+│   │   ├── env_settings.py      # 환경 변수 설정
+│   │   ├── model_config.py      # ML 모델 설정
+│   │   ├── exceptions.py        # 예외 처리
+│   │   ├── logger.py            # 로깅 설정
+│   │   └── redis_client.py      # Redis 클라이언트
+│   ├── routers/
+│   │   ├── bucket.py            # B2 스토리지 API
+│   │   └── image_layered.py     # 이미지 레이어 분해 API ⭐
+│   ├── services/
+│   │   ├── bucket_service.py    # B2 스토리지 서비스
+│   │   └── image_layered_service.py  # 이미지 레이어 분해 서비스 ⭐
+│   ├── __init__.py
+│   └── main.py                  # 애플리케이션 진입점
+├── outputs/                     # 생성된 레이어 이미지 저장
+├── .env                         # 프로덕션 환경 변수
+├── .env.dev                     # 개발 환경 변수
+├── requirements.txt             # 의존성 패키지
+└── tasks.py                     # Invoke 태스크
 ```
 
 ## 설치 및 실행 방법
 
 ### 요구 사항
 
-- Python 3.9 이상
+- Python 3.12 이상
+- **GPU 권장**: NVIDIA GPU (CUDA) 또는 Apple Silicon (MPS)
+- **메모리**: 최소 64GB RAM 권장 (양자화 사용 시 16GB+)
 - Docker (선택 사항)
 
 ### 로컬 개발 환경 설정
 
 ```bash
 # 저장소 클론
-git clone https://github.com/your-username/fastapi_custom_boiler_plate.git
-cd fastapi_custom_boiler_plate
+git clone https://github.com/your-username/qwen_image_layered_test_api.git
+cd qwen_image_layered_test_api
 
 # 가상 환경 생성 및 활성화
 python -m venv .venv
@@ -78,6 +88,9 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
 # 의존성 설치
 pip install -r requirements.txt
+
+# torchvision 설치 (추가)
+pip install torchvision
 
 # 개발 모드 실행
 invoke dev
@@ -87,42 +100,39 @@ invoke dev
 
 `.env.dev` 또는 `.env` 파일에 필요한 환경 변수를 설정합니다:
 
-```
+```env
 # 기본 설정
-CURRENT_ENV=development  # development 또는 production
-LOG_LEVEL=DEBUG  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+CURRENT_ENV=development
+LOG_LEVEL=DEBUG
 
-# B2 스토리지 설정 (선택 사항)
-B2_APPLICATION_KEY_ID=your_key_id
-B2_APPLICATION_KEY=your_key
-B2_BUCKET_NAME=your_bucket_name
+# Image Layered 설정
+OUTPUT_DIR=outputs
+ENABLE_ML_MODEL=true  # false로 설정 시 모델 로딩 안 함
 
-# Redis 설정 (선택 사항)
+# Redis 설정
 REDIS_HOST=localhost
 REDIS_PORT=6379
-REDIS_DB=0
-REDIS_PASSWORD=
-```
+REDIS_PRODUCT_DB=10
+REDIS_LOG_DB=1
 
-### Docker로 실행
+# B2 스토리지 설정 (선택 사항)
+B2_API_KEY_ID=your_key_id
+B2_API_KEY=your_key
+B2_BUCKET_ID=your_bucket_id
 
-```bash
-# Docker 이미지 빌드
-docker build -t fastapi-boilerplate .
-
-# Docker 컨테이너 실행
-docker run -p 8000:8000 --env-file .env fastapi-boilerplate
+# OpenAI 설정 (선택 사항)
+OPENAI_API_KEY=your_openai_api_key
+OPENAI_LLM_MODEL=gpt-4
 ```
 
 ## 실행 명령어
 
-이 프로젝트는 invoke 라이브러리를 사용하여 주요 명령어를 관리합니다:
-
-- `invoke dev`: 개발 모드 실행 (.env.dev 환경 변수 적용, DEBUG 로깅)
-- `invoke start`: 프로덕션 모드 실행 (.env 환경 변수 적용, INFO 로깅)
-- `invoke lint`: Ruff 린터로 코드 검사
-- `invoke format`: Ruff로 코드 포맷팅
-- `invoke test`: pytest로 테스트 실행
+```bash
+invoke dev      # 개발 모드 실행
+invoke start    # 프로덕션 모드 실행
+invoke lint     # 코드 린팅
+invoke format   # 코드 포맷팅
+```
 
 ## API 문서
 
@@ -130,42 +140,133 @@ docker run -p 8000:8000 --env-file .env fastapi-boilerplate
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-## 주요 API 엔드포인트
+## API 엔드포인트
 
-- `GET /`: 기본 라우트, 서버 상태 확인
+### 이미지 레이어 분해
+
+**POST** `/api/image/decompose`
+
+이미지를 여러 RGBA 레이어로 분해합니다.
+
+**Parameters:**
+- `file` (UploadFile): 분해할 이미지 파일
+- `layers` (int, optional): 생성할 레이어 수 (기본값: 4, 범위: 2-10)
+- `resolution` (int, optional): 출력 해상도 (기본값: 640)
+- `num_inference_steps` (int, optional): 추론 스텝 수 (기본값: 50)
+- `true_cfg_scale` (float, optional): CFG 스케일 (기본값: 4.0)
+- `seed` (int, optional): 랜덤 시드 (기본값: 42)
+
+**Response:**
+```json
+{
+  "success": true,
+  "id": "abc12345",
+  "layers": [
+    "abc12345_layer0.png",
+    "abc12345_layer1.png",
+    "abc12345_layer2.png",
+    "abc12345_layer3.png"
+  ],
+  "count": 4,
+  "message": "Successfully decomposed into 4 layers"
+}
+```
+
+### 레이어 파일 다운로드
+
+**GET** `/api/image/files/{filename}`
+
+생성된 레이어 이미지 파일을 다운로드합니다.
+
+### 기타 엔드포인트
+
+- `GET /`: 서버 상태 확인
 - `GET /api/authorize-b2`: B2 스토리지 인증
 - `GET /api/get-upload-url-b2`: B2 업로드 URL 획득
 
-## 커스터마이징 가이드
+## 사용 예시
 
-1. 새로운 라우터 추가:
-   - `app/routers/` 디렉토리에 새 라우터 파일 생성
-   - `app/__init__.py`에 라우터 등록
+### cURL
 
-2. 서비스 추가:
-   - `app/services/` 디렉토리에 새 서비스 파일 생성
-   - 필요한 경우 `app/services/__init__.py`에 가져오기 설정
+```bash
+# 이미지 분해
+curl -X POST "http://localhost:8000/api/image/decompose?layers=4" \
+  -F "file=@your_image.png"
 
-3. 환경 변수 추가:
-   - `app/config/env_settings.py`에 새 환경 변수 추가
-   - `.env` 및 `.env.dev` 파일에 해당 변수 설정
+# 레이어 다운로드
+curl "http://localhost:8000/api/image/files/abc12345_layer0.png" \
+  --output layer0.png
+```
 
-## 프로젝트 확장
+### Python
 
-이 보일러플레이트는 다음과 같은 확장이 가능합니다:
+```python
+import requests
 
-- **데이터베이스 연동**: SQLAlchemy, MongoDB 등 추가
-- **인증 시스템**: JWT, OAuth 등 추가
-- **백그라운드 작업**: Celery, FastAPI Background Tasks 등 추가
-- **캐싱 확장**: Redis 캐싱 시스템 확장
-- **AI 모델 통합**: 머신러닝/딥러닝 모델 통합
+# 이미지 분해
+with open("image.png", "rb") as f:
+    response = requests.post(
+        "http://localhost:8000/api/image/decompose",
+        files={"file": f},
+        params={"layers": 4}
+    )
 
-## 기여 가이드
+result = response.json()
+print(f"Generated {result['count']} layers")
 
-1. 이 저장소를 포크하고 기능 브랜치를 생성합니다.
-2. 변경 사항을 커밋하고 브랜치에 푸시합니다.
-3. 풀 리퀘스트를 생성합니다.
+# 레이어 다운로드
+for layer_file in result["layers"]:
+    layer_response = requests.get(
+        f"http://localhost:8000/api/image/files/{layer_file}"
+    )
+    with open(layer_file, "wb") as f:
+        f.write(layer_response.content)
+```
+
+## ⚠️ 중요 사항
+
+### 모델 크기 및 메모리 요구사항
+
+- **모델 크기**: 57.7GB
+- **필요 메모리**:
+  - 원본 모델: 60GB+ RAM
+  - 양자화 모델: 16GB+ RAM (현재 미지원)
+
+### GPU 요구사항
+
+**지원 환경:**
+- ✅ NVIDIA GPU (CUDA): A100 80GB, H100 80GB 권장
+- ⚠️ Apple Silicon (MPS): 메모리 부족으로 실행 어려움
+- ⚠️ CPU: 매우 느림, 실용성 낮음
+
+**일반 소비자용 GPU로는 실행이 어렵습니다:**
+- RTX 4090 (24GB): ❌ 메모리 부족
+- RTX 4080 (16GB): ❌ 메모리 부족
+- RTX 4070 (12GB): ❌ 메모리 부족
+
+### 권장 사항
+
+개인 PC에서는 다음 대안을 고려하세요:
+1. **Hugging Face Inference API**: 서버에서 모델 실행
+2. **클라우드 GPU 렌탈**: AWS SageMaker, RunPod, Lambda Labs 등
+3. **경량 모델 대기**: 향후 출시될 작은 버전 대기
+
+## 개발 모드에서 모델 로딩 비활성화
+
+모델 없이 API 서버만 테스트하려면:
+
+```env
+# .env.dev
+ENABLE_ML_MODEL=false
+```
 
 ## 라이센스
 
 이 프로젝트는 MIT 라이센스에 따라 배포됩니다.
+
+## 참고 자료
+
+- [Qwen-Image-Layered Model Card](https://huggingface.co/Qwen/Qwen-Image-Layered)
+- [Qwen-Image-Layered GitHub](https://github.com/QwenLM/Qwen-Image-Layered)
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Diffusers Documentation](https://huggingface.co/docs/diffusers)

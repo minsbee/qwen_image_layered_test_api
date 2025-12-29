@@ -30,22 +30,47 @@ class ImageLayeredService:
             logger.info(f"Loading Qwen Image Layered model on device: {self.device}")
             logger.info(f"Using torch dtype: {TORCH_DTYPE}")
 
-            # MPS/Apple Silicon은 bitsandbytes 미지원
-            # CPU 모드로 로드 (메모리 부족 시 스왑 사용)
-            logger.warning("⚠️  Apple Silicon detected - loading without quantization")
-            logger.warning("⚠️  This will use ~60GB memory (may use swap)")
+            # CUDA 환경: 4-bit 양자화 사용
+            if self.device == "cuda":
+                from diffusers import PipelineQuantizationConfig
 
-            self.pipeline = QwenImageLayeredPipeline.from_pretrained(
-                QWEN_MODEL_NAME,
-                torch_dtype=TORCH_DTYPE,
-                low_cpu_mem_usage=True,
-            )
+                logger.info("✅ CUDA GPU detected - using 4-bit quantization")
+                logger.info("🔧 Memory usage: 57.7GB → ~15GB with quantization")
 
-            # CPU에서만 실행
-            if self.device == "cpu":
-                logger.info("Running on CPU (slow but works)")
+                quantization_config = PipelineQuantizationConfig(
+                    quant_backend="bitsandbytes_4bit",
+                    components_to_quantize=["transformer", "text_encoder"],
+                    quant_kwargs={
+                        "load_in_4bit": True,
+                        "bnb_4bit_compute_dtype": TORCH_DTYPE,
+                        "bnb_4bit_quant_type": "nf4",
+                        "bnb_4bit_use_double_quant": True,
+                    }
+                )
+
+                self.pipeline = QwenImageLayeredPipeline.from_pretrained(
+                    QWEN_MODEL_NAME,
+                    torch_dtype=TORCH_DTYPE,
+                    quantization_config=quantization_config,
+                )
+
+            # MPS/CPU: 양자화 없이 로드 (bitsandbytes 미지원)
             else:
-                # MPS로 이동 시도 (메모리 부족할 수 있음)
+                if self.device == "mps":
+                    logger.warning("⚠️  Apple Silicon (MPS) - quantization not supported")
+                    logger.warning("⚠️  Loading full model (~60GB memory, may use swap)")
+                else:  # CPU
+                    logger.warning("⚠️  Running on CPU - will be very slow")
+                    logger.warning("⚠️  Loading full model (~60GB memory, may use swap)")
+
+                self.pipeline = QwenImageLayeredPipeline.from_pretrained(
+                    QWEN_MODEL_NAME,
+                    torch_dtype=TORCH_DTYPE,
+                    low_cpu_mem_usage=True,
+                )
+
+            # MPS: 디바이스로 이동 시도 (메모리 부족 시 실패 가능)
+            if self.device == "mps":
                 logger.info(f"Attempting to move to {self.device}...")
                 try:
                     self.pipeline = self.pipeline.to(self.device)
