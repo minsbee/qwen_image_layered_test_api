@@ -35,5 +35,9 @@ class EnvSettings:
     OPENAI_LLM_MODEL = os.getenv("OPENAI_LLM_MODEL")
     OPENAI_EMBED_MODEL = os.getenv("OPENAI_EMBED_MODEL")
 
+    # Image Layered
+    OUTPUT_DIR = os.getenv("OUTPUT_DIR", "outputs")
+    ENABLE_ML_MODEL = os.getenv("ENABLE_ML_MODEL", "true").lower() == "true"
+
 
 envs = EnvSettings()
